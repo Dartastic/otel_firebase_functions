@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_firebase_functions_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_firebase_functions';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class FirebaseFunctionsResult {
+  /// Creates a result.
   const FirebaseFunctionsResult({
     this.region,
     this.functionName,
@@ -61,8 +62,13 @@ class FirebaseFunctionsResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class FirebaseFunctionsCallResult<T> {
+  /// Creates a call result.
   const FirebaseFunctionsCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final FirebaseFunctionsResult? result;
 }
@@ -87,7 +93,7 @@ Future<T> tracedFirebaseFunctions<T>({
   final span = _tracer().startSpan(
     'firebase_functions $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
@@ -95,67 +101,67 @@ Future<T> tracedFirebaseFunctions<T>({
       final res = r.result!;
       final extras = <Attribute<Object>>[];
       if (res.region != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'firebase_functions.region',
           res.region!,
         ));
       }
       if (res.functionName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'firebase_functions.function.name',
           res.functionName!,
         ));
       }
       if (res.callableUrl != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'firebase_functions.callable.url',
           res.callableUrl!,
         ));
       }
       if (res.requestPayloadSize != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'firebase_functions.request.payload_size',
           res.requestPayloadSize!,
         ));
       }
       if (res.responsePayloadSize != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'firebase_functions.response.payload_size',
           res.responsePayloadSize!,
         ));
       }
       if (res.timeoutSec != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'firebase_functions.timeout_sec',
           res.timeoutSec!,
         ));
       }
       if (res.limitedUseAppCheckToken != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'firebase_functions.app_check.limited_use',
           res.limitedUseAppCheckToken!,
         ));
       }
       if (res.appCheckTokenAttached != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'firebase_functions.app_check.attached',
           res.appCheckTokenAttached!,
         ));
       }
       if (res.authTokenAttached != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'firebase_functions.auth_token.attached',
           res.authTokenAttached!,
         ));
       }
       if (res.fromEmulator != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'firebase_functions.emulator',
           res.fromEmulator!,
         ));
       }
       if (res.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'firebase_functions.error.code',
           res.errorCode!,
         ));
@@ -167,18 +173,18 @@ Future<T> tracedFirebaseFunctions<T>({
         }
       }
       if (res.errorMessage != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'firebase_functions.error.message',
           res.errorMessage!,
         ));
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
